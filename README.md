@@ -44,6 +44,7 @@ The engine will auto-detect whose turn it is, calculate the optimal mathematical
 {
   "move": 1
 }
+```
 
 ## 🗺️ Future plans
 The math works and the UI is dialed in. Next up is adding data persistence and player profiling to turn this into a proper training tool.
