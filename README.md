@@ -9,6 +9,7 @@ I built this project to dive deep into game theory, algorithm optimization, and 
 The engine looks 10 moves into the future, evaluating millions of possible timelines in under 50 milliseconds using Alpha-Beta pruning.
 
 ## Features
+- **Bitboard-based:** Bitboard-based implementation for improved performance and faster search/evaluation.
 - **Optimized Engine:** Custom Minimax algorithm heavily optimized for speed.
 - **Stateless Architecture:** The engine doesn't remember the game state; it just evaluates whatever snapshot it's handed.
 - **Local Web Server:** Built entirely on Java's native `HttpServer` (no Spring Boot or heavy dependencies required).

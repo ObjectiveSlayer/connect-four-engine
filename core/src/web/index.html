@@ -44,6 +44,49 @@
       text-transform: uppercase;
       letter-spacing: 2px;
     }
+    .status-wrapper {
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      position: relative;
+    }
+    #depth-ui {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: opacity 0.3s ease;
+    }
+    #depth-warning {
+      color: #f59e0b;
+      font-size: 0.75rem;
+      visibility: hidden;
+      margin-top: 5px;
+    }
+    #reset-btn {
+      display: none;
+      opacity: 0;
+      position: absolute;
+      bottom: 10px;
+      padding: 8px 24px;
+      background: transparent;
+      border: 2px solid #3f3f46;
+      color: #fafafa;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    #reset-btn:hover {
+      border-color: var(--p1-color);
+      box-shadow: 0 0 15px rgba(244, 63, 94, 0.3);
+      color: var(--p1-color);
+    }
     #game-wrapper {
       display: flex;
       flex-direction: column;
@@ -135,34 +178,6 @@
       0% { width: 0; opacity: 0; }
       100% { opacity: 1; }
     }
-    .status-wrapper {
-      min-height: 80px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 12px;
-    }
-    #reset-btn {
-      display: none;
-      opacity: 0;
-      padding: 8px 24px;
-      background: transparent;
-      border: 2px solid #3f3f46;
-      color: #fafafa;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-    }
-    #reset-btn:hover {
-      border-color: var(--p1-color);
-      box-shadow: 0 0 15px rgba(244, 63, 94, 0.3);
-      color: var(--p1-color);
-    }
   </style>
 </head>
 <body>
@@ -170,6 +185,21 @@
     <h1>Connect Four</h1>
     <div class="status-wrapper">
       <div id="status">Your Turn <span style="color: var(--p1-color)">●</span></div>
+      
+      <div id="depth-ui">
+        <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+          <span style="font-size: 0.8rem; color: #a1a1aa; text-transform: uppercase;">Engine Depth:</span>
+          <select id="depth-select" onchange="checkDepthWarning()" style="background: var(--cell-empty); color: white; border: 1px solid #3f3f46; border-radius: 4px; padding: 4px 8px; cursor: pointer;">
+            <option value="6">6 (Fast)</option>
+            <option value="8">8 (Normal)</option>
+            <option value="10" selected>10 (Hard)</option>
+            <option value="12">12 (Extreme)</option>
+            <option value="14">14 (God Mode)</option>
+          </select>
+        </div>
+        <div id="depth-warning">Warning: Depths 12+ may take >10 seconds per move.</div>
+      </div>
+
       <button id="reset-btn" onclick="resetGame()">Play Again</button>
     </div>
   </div>
@@ -181,13 +211,17 @@
   </div>
   <script>
     const ROWS = 6, COLS = 7;
+    const DROP_SPEED = 1.1; 
     let grid = Array(ROWS).fill().map(() => Array(COLS).fill(0));
     let isHumanTurn = true;
     let gameOver = false;
+    
     const boardDiv = document.getElementById('board');
     const indicatorsDiv = document.getElementById('indicators');
     const boardContainer = document.getElementById('board-container');
     const statusDiv = document.getElementById('status');
+    const depthUI = document.getElementById('depth-ui');
+    const resetBtn = document.getElementById('reset-btn');
 
     for (let c = 0; c < COLS; c++) {
       let slot = document.createElement('div');
@@ -226,23 +260,34 @@
     async function handleHumanMove(col) {
       if (!isHumanTurn || gameOver || grid[0][col] !== 0) return;
       document.getElementById(`ind-${col}`).style.opacity = '0';
-      dropPiece(col, 1);
+      
+      const duration = dropPiece(col, 1);
       if (checkAndTriggerWin(1)) return;
+      
       isHumanTurn = false;
+      
+      // Start thinking when the piece touches the bottom (70% of duration)
+      await new Promise(resolve => setTimeout(resolve, duration * 0.7));
+      
       statusDiv.innerHTML = 'Engine Computing <span style="color: var(--p2-color)">●</span>';
-      setTimeout(async () => {
-        let snapshot = grid.map(row => row.join('')).join('/');
-        try {
-          let response = await fetch(`/api/move?snapshot=${snapshot}`);
-          let data = await response.json();
-          dropPiece(data.move, 2);
-          if (checkAndTriggerWin(2)) return;
-          isHumanTurn = true;
-          statusDiv.innerHTML = 'Your Turn <span style="color: var(--p1-color)">●</span>';
-        } catch (err) {
-          statusDiv.innerText = "Error connecting to Engine.";
-        }
-      }, 600);
+      
+      let snapshot = grid.map(row => row.join('')).join('/');
+      let depth = document.getElementById('depth-select').value;
+      try {
+        let response = await fetch(`/api/move?snapshot=${snapshot}&depth=${depth}`);
+        let data = await response.json();
+        
+        const aiDuration = dropPiece(data.move, 2);
+        if (checkAndTriggerWin(2)) return;
+        
+        // Wait for AI piece to fully settle before enabling input
+        await new Promise(resolve => setTimeout(resolve, aiDuration + 100));
+        
+        isHumanTurn = true;
+        statusDiv.innerHTML = 'Your Turn <span style="color: var(--p1-color)">●</span>';
+      } catch (err) {
+        statusDiv.innerText = "Error connecting to Engine.";
+      }
     }
 
     function dropPiece(col, player) {
@@ -251,12 +296,25 @@
           grid[r][col] = player;
           const cellDiv = document.getElementById(`cell-${r}-${col}`);
           cellDiv.classList.add(player === 1 ? 'player1' : 'player2');
+          
           const piece = document.createElement('div');
           piece.className = 'piece';
           cellDiv.appendChild(piece);
-          const dropDistance = (r * 82) + 90;
-          piece.animate([{ transform: `translateY(-${dropDistance}px)`, offset: 0 }, { transform: 'translateY(0)', offset: 0.7, easing: 'ease-out' }, { transform: 'translateY(-12px)', offset: 0.85, easing: 'ease-in-out' }, { transform: 'translateY(0)', offset: 1 }], { duration: 500, easing: 'ease-in' });
-          return;
+          
+          const indicator = document.getElementById(`ind-${col}`);
+          const startPos = indicator.getBoundingClientRect().top;
+          const endPos = cellDiv.getBoundingClientRect().top;
+          const distance = endPos - startPos;
+          const duration = distance / DROP_SPEED;
+
+          piece.animate([
+            { transform: `translateY(-${distance}px)`, offset: 0 }, 
+            { transform: 'translateY(0)', offset: 0.7, easing: 'ease-out' }, 
+            { transform: 'translateY(-12px)', offset: 0.85, easing: 'ease-in-out' }, 
+            { transform: 'translateY(0)', offset: 1 }
+          ], { duration: duration, easing: 'ease-in' });
+          
+          return duration;
         }
       }
     }
@@ -269,9 +327,14 @@
         boardContainer.classList.add('game-over');
         cells.forEach(([r, c]) => { document.getElementById(`cell-${r}-${c}`).classList.add('winner'); });
         drawStrikeThrough(cells, player);
-        const resetBtn = document.getElementById('reset-btn');
-        resetBtn.style.display = 'block';
-        setTimeout(() => resetBtn.style.opacity = '1', 50);
+        
+        depthUI.style.opacity = '0';
+        setTimeout(() => {
+          depthUI.style.display = 'none';
+          resetBtn.style.display = 'block';
+          setTimeout(() => resetBtn.style.opacity = '1', 50);
+        }, 300);
+        
         return true;
       }
       return false;
@@ -327,9 +390,12 @@
       grid = Array(ROWS).fill().map(() => Array(COLS).fill(0));
       isHumanTurn = true;
       gameOver = false;
-      const resetBtn = document.getElementById('reset-btn');
       resetBtn.style.opacity = '0';
-      setTimeout(() => resetBtn.style.display = 'none', 300);
+      setTimeout(() => {
+        resetBtn.style.display = 'none';
+        depthUI.style.display = 'flex';
+        depthUI.style.opacity = '1';
+      }, 300);
       statusDiv.innerHTML = 'Your Turn <span style="color: var(--p1-color)">●</span>';
       boardContainer.classList.remove('game-over');
       document.querySelectorAll('.piece').forEach(p => p.remove());
@@ -337,6 +403,11 @@
       document.querySelectorAll('.cell').forEach(cell => {
         cell.classList.remove('player1', 'player2', 'winner');
       });
+    }
+
+    function checkDepthWarning() {
+      const depth = document.getElementById('depth-select').value;
+      document.getElementById('depth-warning').style.visibility = depth >= 12 ? 'visible' : 'hidden';
     }
   </script>
 </body>
