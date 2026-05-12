@@ -16,12 +16,26 @@ public class Board  {
     }
 
     public void printBoard() {
-        for (int i = 0; i < ROWS; i++) {
-            for (int j = 0; j < COLS; j++) {
-                System.out.print(grid[i][j] + " ");
+        String RESET = "\u001B[0m";
+        String RED = "\u001B[31m";
+        String YELLOW = "\u001B[33m";
+        String GRAY = "\u001B[90m";
+
+        System.out.println();
+        for (int r = 0; r < 6; r++) {
+            System.out.print("  ");
+            for (int c = 0; c < 7; c++) {
+                if (grid[r][c] == 1) {
+                    System.out.print(RED + "O " + RESET);
+                } else if (grid[r][c] == 2) {
+                    System.out.print(YELLOW + "O " + RESET);
+                } else {
+                    System.out.print(GRAY + "· " + RESET);
+                }
             }
             System.out.println();
         }
+        System.out.println(GRAY + "  1 2 3 4 5 6 7\n" + RESET);
     }
 
     public void loadSnapshot(String gridString) {

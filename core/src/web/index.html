@@ -1,446 +1,343 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connect Four // Pro</title>
-    <style>
-        :root {
-            --bg-dark: #050505;
-            --board-bg: #111113;
-            --cell-empty: #1c1c21;
-            --p1-color: #f43f5e;
-            --p2-color: #0ea5e9;
-            --p1-glow: 0 0 25px rgba(244, 63, 94, 0.4);
-            --p2-glow: 0 0 25px rgba(14, 165, 233, 0.4);
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: #fafafa;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            letter-spacing: 3px;
-            margin: 0;
-            text-transform: uppercase;
-        }
-
-        #status {
-            margin-top: 8px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #71717a;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        #game-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        #indicators {
-            display: grid;
-            grid-template-columns: repeat(7, 70px);
-            gap: 12px;
-            padding: 0 20px;
-        }
-
-        .indicator-slot {
-            width: 70px;
-            height: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-        }
-
-        .indicator-piece {
-            width: 50px;
-            height: 15px;
-            border-radius: 25px 25px 0 0;
-            opacity: 0;
-            transition: opacity 0.2s, background 0.2s;
-        }
-
-        #board-container {
-            position: relative;
-            padding: 20px;
-            background: var(--board-bg);
-            border-radius: 16px;
-            border: 1px solid #27272a;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
-            overflow: hidden;
-        }
-
-        #board {
-            display: grid;
-            grid-template-columns: repeat(7, 70px);
-            grid-template-rows: repeat(6, 70px);
-            gap: 12px;
-        }
-
-        .cell {
-            width: 70px;
-            height: 70px;
-            background: var(--cell-empty);
-            border-radius: 50%;
-            position: relative;
-            cursor: pointer;
-            box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.6);
-        }
-
-        .piece {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            box-shadow: inset 0 -8px 12px rgba(0,0,0,0.4);
-        }
-
-        .player1 .piece {
-            background: var(--p1-color);
-            box-shadow: var(--p1-glow), inset 0 -8px 12px rgba(0,0,0,0.4);
-        }
-
-        .player2 .piece {
-            background: var(--p2-color);
-            box-shadow: var(--p2-glow), inset 0 -8px 12px rgba(0,0,0,0.4);
-        }
-
-        .game-over .cell:not(.winner) .piece {
-            opacity: 0.2;
-            filter: grayscale(30%);
-            transition: opacity 1s, filter 1s;
-        }
-
-        .winning-line {
-            position: absolute;
-            height: 8px;
-            border-radius: 4px;
-            transform-origin: left center;
-            z-index: 10;
-            animation: drawLine 0.4s ease-out forwards;
-        }
-
-        .line-p1 {
-            background: white;
-            box-shadow: 0 0 15px var(--p1-color);
-        }
-
-        .line-p2 {
-            background: white;
-            box-shadow: 0 0 15px var(--p2-color);
-        }
-
-        @keyframes drawLine {
-            0% {
-                width: 0;
-                opacity: 0;
-            }
-
-            100% {
-                opacity: 1;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connect Four Engine</title>
+  <style>
+    :root {
+      --bg-dark: #050505;
+      --board-bg: #111113;
+      --cell-empty: #1c1c21;
+      --p1-color: #f43f5e;
+      --p2-color: #0ea5e9;
+      --p1-glow: 0 0 25px rgba(244, 63, 94, 0.4);
+      --p2-glow: 0 0 25px rgba(14, 165, 233, 0.4);
+    }
+    body {
+      background-color: var(--bg-dark);
+      color: #fafafa;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: 3px;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    #status {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #71717a;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    #game-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    #indicators {
+      display: grid;
+      grid-template-columns: repeat(7, 70px);
+      gap: 12px;
+      padding: 0 20px;
+    }
+    .indicator-slot {
+      width: 70px;
+      height: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+    .indicator-piece {
+      width: 50px;
+      height: 15px;
+      border-radius: 25px 25px 0 0;
+      opacity: 0;
+      transition: opacity 0.2s, background 0.2s;
+    }
+    #board-container {
+      position: relative;
+      padding: 20px;
+      background: var(--board-bg);
+      border-radius: 16px;
+      border: 1px solid #27272a;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+    }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(7, 70px);
+      grid-template-rows: repeat(6, 70px);
+      gap: 12px;
+    }
+    .cell {
+      width: 70px;
+      height: 70px;
+      background: var(--cell-empty);
+      border-radius: 50%;
+      position: relative;
+      cursor: pointer;
+      box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.6);
+    }
+    .piece {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      box-shadow: inset 0 -8px 12px rgba(0, 0, 0, 0.4);
+    }
+    .player1 .piece {
+      background: var(--p1-color);
+      box-shadow: var(--p1-glow), inset 0 -8px 12px rgba(0, 0, 0, 0.4);
+    }
+    .player2 .piece {
+      background: var(--p2-color);
+      box-shadow: var(--p2-glow), inset 0 -8px 12px rgba(0, 0, 0, 0.4);
+    }
+    .game-over .cell:not(.winner) .piece {
+      opacity: 0.2;
+      filter: grayscale(30%);
+      transition: opacity 1s, filter 1s;
+    }
+    .winning-line {
+      position: absolute;
+      height: 8px;
+      border-radius: 4px;
+      transform-origin: left center;
+      z-index: 10;
+      animation: drawLine 0.4s ease-out forwards;
+    }
+    .line-p1 {
+      background: white;
+      box-shadow: 0 0 15px var(--p1-color);
+    }
+    .line-p2 {
+      background: white;
+      box-shadow: 0 0 15px var(--p2-color);
+    }
+    @keyframes drawLine {
+      0% { width: 0; opacity: 0; }
+      100% { opacity: 1; }
+    }
+    .status-wrapper {
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+    }
+    #reset-btn {
+      display: none;
+      opacity: 0;
+      padding: 8px 24px;
+      background: transparent;
+      border: 2px solid #3f3f46;
+      color: #fafafa;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    #reset-btn:hover {
+      border-color: var(--p1-color);
+      box-shadow: 0 0 15px rgba(244, 63, 94, 0.3);
+      color: var(--p1-color);
+    }
+  </style>
 </head>
 <body>
-
-    <div class="header">
-        <h1>Connect Four</h1>
-        <div id="status">Your Turn <span style="color: var(--p1-color)">●</span></div>
+  <div class="header">
+    <h1>Connect Four</h1>
+    <div class="status-wrapper">
+      <div id="status">Your Turn <span style="color: var(--p1-color)">●</span></div>
+      <button id="reset-btn" onclick="resetGame()">Play Again</button>
     </div>
-
-    <div id="game-wrapper">
-        <div id="indicators"></div>
-        <div id="board-container">
-            <div id="board"></div>
-        </div>
+  </div>
+  <div id="game-wrapper">
+    <div id="indicators"></div>
+    <div id="board-container">
+      <div id="board"></div>
     </div>
+  </div>
+  <script>
+    const ROWS = 6, COLS = 7;
+    let grid = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+    let isHumanTurn = true;
+    let gameOver = false;
+    const boardDiv = document.getElementById('board');
+    const indicatorsDiv = document.getElementById('indicators');
+    const boardContainer = document.getElementById('board-container');
+    const statusDiv = document.getElementById('status');
 
-    <script>
-        const ROWS = 6, COLS = 7;
+    for (let c = 0; c < COLS; c++) {
+      let slot = document.createElement('div');
+      slot.className = 'indicator-slot';
+      let piece = document.createElement('div');
+      piece.className = 'indicator-piece';
+      piece.id = `ind-${c}`;
+      slot.appendChild(piece);
+      indicatorsDiv.appendChild(slot);
+    }
 
-        let grid = Array(ROWS).fill().map(() => Array(COLS).fill(0));
-        let isHumanTurn = true;
-        let gameOver = false;
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        let cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.id = `cell-${r}-${c}`;
+        cell.onmouseenter = () => handleHover(c, true);
+        cell.onmouseleave = () => handleHover(c, false);
+        cell.onclick = () => handleHumanMove(c);
+        boardDiv.appendChild(cell);
+      }
+    }
 
-        const boardDiv = document.getElementById('board');
-        const indicatorsDiv = document.getElementById('indicators');
-        const boardContainer = document.getElementById('board-container');
-        const statusDiv = document.getElementById('status');
+    function handleHover(col, isHovering) {
+      if (gameOver || !isHumanTurn || grid[0][col] !== 0) return;
+      const indicator = document.getElementById(`ind-${col}`);
+      if (isHovering) {
+        indicator.style.opacity = '1';
+        indicator.style.background = 'var(--p1-color)';
+        indicator.style.boxShadow = 'var(--p1-glow)';
+      } else {
+        indicator.style.opacity = '0';
+      }
+    }
 
-        for (let c = 0; c < COLS; c++) {
-            let slot = document.createElement('div');
-            slot.className = 'indicator-slot';
-
-            let piece = document.createElement('div');
-            piece.className = 'indicator-piece';
-            piece.id = `ind-${c}`;
-
-            slot.appendChild(piece);
-            indicatorsDiv.appendChild(slot);
+    async function handleHumanMove(col) {
+      if (!isHumanTurn || gameOver || grid[0][col] !== 0) return;
+      document.getElementById(`ind-${col}`).style.opacity = '0';
+      dropPiece(col, 1);
+      if (checkAndTriggerWin(1)) return;
+      isHumanTurn = false;
+      statusDiv.innerHTML = 'Engine Computing <span style="color: var(--p2-color)">●</span>';
+      setTimeout(async () => {
+        let snapshot = grid.map(row => row.join('')).join('/');
+        try {
+          let response = await fetch(`/api/move?snapshot=${snapshot}`);
+          let data = await response.json();
+          dropPiece(data.move, 2);
+          if (checkAndTriggerWin(2)) return;
+          isHumanTurn = true;
+          statusDiv.innerHTML = 'Your Turn <span style="color: var(--p1-color)">●</span>';
+        } catch (err) {
+          statusDiv.innerText = "Error connecting to Engine.";
         }
+      }, 600);
+    }
 
+    function dropPiece(col, player) {
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (grid[r][col] === 0) {
+          grid[r][col] = player;
+          const cellDiv = document.getElementById(`cell-${r}-${col}`);
+          cellDiv.classList.add(player === 1 ? 'player1' : 'player2');
+          const piece = document.createElement('div');
+          piece.className = 'piece';
+          cellDiv.appendChild(piece);
+          const dropDistance = (r * 82) + 90;
+          piece.animate([{ transform: `translateY(-${dropDistance}px)`, offset: 0 }, { transform: 'translateY(0)', offset: 0.7, easing: 'ease-out' }, { transform: 'translateY(-12px)', offset: 0.85, easing: 'ease-in-out' }, { transform: 'translateY(0)', offset: 1 }], { duration: 500, easing: 'ease-in' });
+          return;
+        }
+      }
+    }
+
+    function checkAndTriggerWin(player) {
+      let cells = getWinningCells(player);
+      if (cells) {
+        gameOver = true;
+        statusDiv.innerHTML = player === 1 ? '<span style="color: var(--p1-color)">HUMAN DEFEATS ENGINE</span>' : '<span style="color: var(--p2-color)">ENGINE DEFEATS HUMAN</span>';
+        boardContainer.classList.add('game-over');
+        cells.forEach(([r, c]) => { document.getElementById(`cell-${r}-${c}`).classList.add('winner'); });
+        drawStrikeThrough(cells, player);
+        const resetBtn = document.getElementById('reset-btn');
+        resetBtn.style.display = 'block';
+        setTimeout(() => resetBtn.style.opacity = '1', 50);
+        return true;
+      }
+      return false;
+    }
+
+    function drawStrikeThrough(cells, player) {
+      cells.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+      const firstCell = document.getElementById(`cell-${cells[0][0]}-${cells[0][1]}`);
+      const lastCell = document.getElementById(`cell-${cells[3][0]}-${cells[3][1]}`);
+      const boardRect = boardContainer.getBoundingClientRect();
+      const startRect = firstCell.getBoundingClientRect();
+      const endRect = lastCell.getBoundingClientRect();
+      const x1 = (startRect.left - boardRect.left) + (startRect.width / 2);
+      const y1 = (startRect.top - boardRect.top) + (startRect.height / 2);
+      const x2 = (endRect.left - boardRect.left) + (endRect.width / 2);
+      const y2 = (endRect.top - boardRect.top) + (endRect.height / 2);
+      const length = Math.hypot(x2 - x1, y2 - y1);
+      const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
+      const line = document.createElement('div');
+      line.className = `winning-line ${player === 1 ? 'line-p1' : 'line-p2'}`;
+      line.style.left = `${x1}px`;
+      line.style.top = `${y1 - 4}px`;
+      line.style.transform = `rotate(${angle}deg)`;
+      setTimeout(() => { line.style.width = `${length}px`; }, 100);
+      boardContainer.appendChild(line);
+    }
+
+    function getWinningCells(p) {
+      for (let c = 0; c < COLS - 3; c++) {
         for (let r = 0; r < ROWS; r++) {
-            for (let c = 0; c < COLS; c++) {
-                let cell = document.createElement('div');
-
-                cell.className = 'cell';
-                cell.id = `cell-${r}-${c}`;
-
-                cell.onmouseenter = () => handleHover(c, true);
-                cell.onmouseleave = () => handleHover(c, false);
-                cell.onclick = () => handleHumanMove(c);
-
-                boardDiv.appendChild(cell);
-            }
+          if (grid[r][c] == p && grid[r][c + 1] == p && grid[r][c + 2] == p && grid[r][c + 3] == p) return [[r, c], [r, c + 1], [r, c + 2], [r, c + 3]];
         }
-
-        function handleHover(col, isHovering) {
-            if (gameOver || !isHumanTurn || grid[0][col] !== 0) return;
-
-            const indicator = document.getElementById(`ind-${col}`);
-
-            if (isHovering) {
-                indicator.style.opacity = '1';
-                indicator.style.background = 'var(--p1-color)';
-                indicator.style.boxShadow = 'var(--p1-glow)';
-            } else {
-                indicator.style.opacity = '0';
-            }
+      }
+      for (let c = 0; c < COLS; c++) {
+        for (let r = 0; r < ROWS - 3; r++) {
+          if (grid[r][c] == p && grid[r + 1][c] == p && grid[r + 2][c] == p && grid[r + 3][c] == p) return [[r, c], [r + 1, c], [r + 2, c], [r + 3, c]];
         }
-
-        async function handleHumanMove(col) {
-            if (!isHumanTurn || gameOver || grid[0][col] !== 0) return;
-
-            document.getElementById(`ind-${col}`).style.opacity = '0';
-
-            dropPiece(col, 1);
-
-            if (checkAndTriggerWin(1)) return;
-
-            isHumanTurn = false;
-
-            statusDiv.innerHTML = 'Engine Computing... <span style="color: var(--p2-color)">●</span>';
-
-            setTimeout(async () => {
-                let snapshot = grid.map(row => row.join('')).join('/');
-
-                try {
-                    let response = await fetch(`/api/move?snapshot=${snapshot}`);
-                    let data = await response.json();
-
-                    dropPiece(data.move, 2);
-
-                    if (checkAndTriggerWin(2)) return;
-
-                    isHumanTurn = true;
-
-                    statusDiv.innerHTML = 'Your Turn <span style="color: var(--p1-color)">●</span>';
-                } catch (err) {
-                    statusDiv.innerText = "Error connecting to Engine.";
-                }
-            }, 600);
+      }
+      for (let c = 0; c < COLS - 3; c++) {
+        for (let r = 0; r < ROWS - 3; r++) {
+          if (grid[r][c] == p && grid[r + 1][c + 1] == p && grid[r + 2][c + 2] == p && grid[r + 3][c + 3] == p) return [[r, c], [r + 1, c + 1], [r + 2, c + 2], [r + 3, c + 3]];
         }
-
-        function dropPiece(col, player) {
-            for (let r = ROWS - 1; r >= 0; r--) {
-                if (grid[r][col] === 0) {
-                    grid[r][col] = player;
-
-                    const cellDiv = document.getElementById(`cell-${r}-${col}`);
-
-                    cellDiv.classList.add(player === 1 ? 'player1' : 'player2');
-
-                    const piece = document.createElement('div');
-
-                    piece.className = 'piece';
-
-                    cellDiv.appendChild(piece);
-
-                    const dropDistance = (r * 82) + 90;
-
-                    piece.animate([
-                        {
-                            transform: `translateY(-${dropDistance}px)`,
-                            offset: 0
-                        },
-                        {
-                            transform: 'translateY(0)',
-                            offset: 0.7,
-                            easing: 'ease-out'
-                        },
-                        {
-                            transform: 'translateY(-12px)',
-                            offset: 0.85,
-                            easing: 'ease-in-out'
-                        },
-                        {
-                            transform: 'translateY(0)',
-                            offset: 1
-                        }
-                    ], {
-                        duration: 500,
-                        easing: 'ease-in'
-                    });
-
-                    return;
-                }
-            }
+      }
+      for (let c = 0; c < COLS - 3; c++) {
+        for (let r = 3; r < ROWS; r++) {
+          if (grid[r][c] == p && grid[r - 1][c + 1] == p && grid[r - 2][c + 2] == p && grid[r - 3][c + 3] == p) return [[r, c], [r - 1, c + 1], [r - 2, c + 2], [r - 3, c + 3]];
         }
+      }
+      return null;
+    }
 
-        function checkAndTriggerWin(player) {
-            let cells = getWinningCells(player);
-
-            if (cells) {
-                gameOver = true;
-
-                statusDiv.innerHTML = player === 1
-                    ? '<span style="color: var(--p1-color)">HUMAN DEFEATS ENGINE</span>'
-                    : '<span style="color: var(--p2-color)">ENGINE DEFEATS HUMAN</span>';
-
-                boardContainer.classList.add('game-over');
-
-                cells.forEach(([r, c]) => {
-                    document.getElementById(`cell-${r}-${c}`).classList.add('winner');
-                });
-
-                drawStrikeThrough(cells, player);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        function drawStrikeThrough(cells, player) {
-            cells.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-
-            const firstCell = document.getElementById(`cell-${cells[0][0]}-${cells[0][1]}`);
-            const lastCell = document.getElementById(`cell-${cells[3][0]}-${cells[3][1]}`);
-
-            const boardRect = boardContainer.getBoundingClientRect();
-            const startRect = firstCell.getBoundingClientRect();
-            const endRect = lastCell.getBoundingClientRect();
-
-            const x1 = (startRect.left - boardRect.left) + (startRect.width / 2);
-            const y1 = (startRect.top - boardRect.top) + (startRect.height / 2);
-
-            const x2 = (endRect.left - boardRect.left) + (endRect.width / 2);
-            const y2 = (endRect.top - boardRect.top) + (endRect.height / 2);
-
-            const length = Math.hypot(x2 - x1, y2 - y1);
-            const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
-
-            const line = document.createElement('div');
-
-            line.className = `winning-line ${player === 1 ? 'line-p1' : 'line-p2'}`;
-
-            line.style.left = `${x1}px`;
-            line.style.top = `${y1 - 4}px`;
-            line.style.transform = `rotate(${angle}deg)`;
-
-            setTimeout(() => {
-                line.style.width = `${length}px`;
-            }, 100);
-
-            boardContainer.appendChild(line);
-        }
-
-        function getWinningCells(p) {
-            for (let c = 0; c < COLS - 3; c++) {
-                for (let r = 0; r < ROWS; r++) {
-                    if (
-                        grid[r][c] == p &&
-                        grid[r][c + 1] == p &&
-                        grid[r][c + 2] == p &&
-                        grid[r][c + 3] == p
-                    ) {
-                        return [
-                            [r, c],
-                            [r, c + 1],
-                            [r, c + 2],
-                            [r, c + 3]
-                        ];
-                    }
-                }
-            }
-
-            for (let c = 0; c < COLS; c++) {
-                for (let r = 0; r < ROWS - 3; r++) {
-                    if (
-                        grid[r][c] == p &&
-                        grid[r + 1][c] == p &&
-                        grid[r + 2][c] == p &&
-                        grid[r + 3][c] == p
-                    ) {
-                        return [
-                            [r, c],
-                            [r + 1, c],
-                            [r + 2, c],
-                            [r + 3, c]
-                        ];
-                    }
-                }
-            }
-
-            for (let c = 0; c < COLS - 3; c++) {
-                for (let r = 0; r < ROWS - 3; r++) {
-                    if (
-                        grid[r][c] == p &&
-                        grid[r + 1][c + 1] == p &&
-                        grid[r + 2][c + 2] == p &&
-                        grid[r + 3][c + 3] == p
-                    ) {
-                        return [
-                            [r, c],
-                            [r + 1, c + 1],
-                            [r + 2, c + 2],
-                            [r + 3, c + 3]
-                        ];
-                    }
-                }
-            }
-
-            for (let c = 0; c < COLS - 3; c++) {
-                for (let r = 3; r < ROWS; r++) {
-                    if (
-                        grid[r][c] == p &&
-                        grid[r - 1][c + 1] == p &&
-                        grid[r - 2][c + 2] == p &&
-                        grid[r - 3][c + 3] == p
-                    ) {
-                        return [
-                            [r, c],
-                            [r - 1, c + 1],
-                            [r - 2, c + 2],
-                            [r - 3, c + 3]
-                        ];
-                    }
-                }
-            }
-
-            return null;
-        }
-    </script>
+    function resetGame() {
+      grid = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+      isHumanTurn = true;
+      gameOver = false;
+      const resetBtn = document.getElementById('reset-btn');
+      resetBtn.style.opacity = '0';
+      setTimeout(() => resetBtn.style.display = 'none', 300);
+      statusDiv.innerHTML = 'Your Turn <span style="color: var(--p1-color)">●</span>';
+      boardContainer.classList.remove('game-over');
+      document.querySelectorAll('.piece').forEach(p => p.remove());
+      document.querySelectorAll('.winning-line').forEach(l => l.remove());
+      document.querySelectorAll('.cell').forEach(cell => {
+        cell.classList.remove('player1', 'player2', 'winner');
+      });
+    }
+  </script>
 </body>
 </html>
