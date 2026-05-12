@@ -44,3 +44,11 @@ The engine will auto-detect whose turn it is, calculate the optimal mathematical
 {
   "move": 1
 }
+
+## 🗺️ Future plans
+The math works and the UI is dialed in. Next up is adding data persistence and player profiling to turn this into a proper training tool.
+
+- [ ] **Database Integration:** Hook up an embedded SQLite database to log every game, move, and outcome locally.
+- [ ] **Player Elo Rating:** Implement a chess-style rating system to track skill progression against the engine.
+- [ ] **Win/Loss Tracking:** A persistent dashboard to track your overall record.
+- [ ] **Dynamic Difficulty:** Instead of always playing at Depth 10 (perfect play), the engine will automatically classify the human's skill level and artificially limit its search depth or inject blunders to match the human's rating.
