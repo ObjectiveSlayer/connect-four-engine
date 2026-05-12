@@ -25,6 +25,7 @@ public class Board  {
     }
 
     public void loadSnapshot(String gridString) {
+        gridString = gridString.trim();
         String[] textRows = gridString.split("/");
 
         if(textRows.length != ROWS)
@@ -35,7 +36,7 @@ public class Board  {
 
         for(int r = 0; r < ROWS; r++) {
             if(textRows[r].length() != COLS)
-                throw new IllegalArgumentException("Illegal snapshot: Row " + r + " does not have 7 columns.");
+                throw new IllegalArgumentException("Illegal snapshot: Row " + (r + 1) + " does not have 7 columns.");
 
             for(int c = 0; c < COLS; c++) {
                 char pieceChar = textRows[r].charAt(c);
